@@ -1,5 +1,5 @@
 import { faCalendarAlt } from '@fortawesome/free-regular-svg-icons'
-import { faDollarSign, faFileImage, IconDefinition } from '@fortawesome/free-solid-svg-icons'
+import { faDollarSign, faSmile, IconDefinition } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { MaterialUiPickersDate } from '@material-ui/pickers/typings/date'
 import 'date-fns'
@@ -13,6 +13,10 @@ import DatePicker from '../../components/DatePicker'
 import { Theme } from '../../components/Theme'
 import { BaseEmoji } from 'emoji-mart'
 import EmojiPicker from '../../components/EmojiPicker'
+import AddIconButton from './AddIconButton'
+import { TransparentButton } from '../../components/TransparentButton'
+import { add } from 'date-fns'
+import GoalIcon from './GoalIcon'
 
 type Props = { goal: Goal }
 export function GoalManager(props: Props) {
@@ -23,6 +27,7 @@ export function GoalManager(props: Props) {
   const [name, setName] = useState<string | null>(null)
   const [targetDate, setTargetDate] = useState<Date | null>(null)
   const [targetAmount, setTargetAmount] = useState<number | null>(null)
+  const [icon, setIcon] = useState<string | null>(null)
   const [emojiPickerIsOpen, setEmojiPickerIsOpen] = useState(false)
 
   useEffect(() => {
@@ -40,6 +45,10 @@ export function GoalManager(props: Props) {
     setName(goal.name)
   }, [goal.name])
 
+  // Update icon when selecting a different goal, or when the icon changes
+  useEffect(() => {
+    setIcon(props.goal.icon)
+  }, [props.goal.id, props.goal.icon])
   const updateNameOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const nextName = event.target.value
     setName(nextName)
@@ -100,11 +109,26 @@ export function GoalManager(props: Props) {
     // Update database
     updateGoalApi(props.goal.id, updatedGoal)
   }
+
   const hasIcon = () => goal.icon != null
 
+  const addIconOnClick = (event: React.MouseEvent) => {
+    event.stopPropagation()
+    setEmojiPickerIsOpen(!emojiPickerIsOpen)
+  }
+
+  const closeEmojiPicker = () => {
+    if (emojiPickerIsOpen) {
+      setEmojiPickerIsOpen(false)
+    }
+  }
 
   return (
-    <GoalManagerContainer>
+    <GoalManagerContainer onClick={closeEmojiPicker}>
+      <GoalIconContainer shouldShow={hasIcon()}>
+        <GoalIcon icon={goal.icon} onClick={addIconOnClick} />
+      </GoalIconContainer>
+
       <NameInput value={name ?? ''} onChange={updateNameOnChange} />
 
       <Group>
@@ -142,14 +166,29 @@ export function GoalManager(props: Props) {
       >
         <EmojiPicker onClick={pickEmojiOnClick} />
       </EmojiPickerContainer>
+
+      <AddIconButtonContainer hasIcon={hasIcon()} isEmojiPickerOpen={emojiPickerIsOpen}>
+        <TransparentButton onClick={addIconOnClick}>
+          <FontAwesomeIcon icon={faSmile} size="2x" />
+          <AddIconButtonText>{hasIcon() ? 'Change icon' : 'Add icon'}</AddIconButtonText>
+        </TransparentButton>
+      </AddIconButtonContainer>
     </GoalManagerContainer>
   )
 }
 
 type FieldProps = { name: string; icon: IconDefinition }
-type AddIconButtonContainerProps = { shouldShow: boolean }
+type AddIconButtonContainerProps = { hasIcon: boolean; isEmojiPickerOpen: boolean }
 type GoalIconContainerProps = { shouldShow: boolean }
 type EmojiPickerContainerProps = { isOpen: boolean; hasIcon: boolean }
+
+const AddIconButtonContainer = styled.div<AddIconButtonContainerProps>`
+  display: ${(props) => (props.isEmojiPickerOpen ? 'none' : 'flex')};
+  flex-direction: row;
+  align-items: center;
+  margin-top: 2rem;
+  ${(props) => props.hasIcon && 'opacity: 0.5;'}
+`
 
 const Field = (props: FieldProps) => (
   <FieldContainer>
@@ -225,7 +264,13 @@ const StringInput = styled.input`
 const Value = styled.div`
   margin-left: 2rem;
 `
-function setIcon(native: string) {
-  throw new Error('Function not implemented.')
-}
 
+const AddIconButtonText = styled.span`
+  font-size: 1.5rem;
+  margin-left: 0.75rem;
+  color: ${({ theme }: { theme: Theme }) => theme.text};
+`
+
+const GoalIconContainer = styled.div<GoalIconContainerProps>`
+  display: ${(props) => (props.shouldShow ? 'flex' : 'none')};
+`
