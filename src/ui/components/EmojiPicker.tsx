@@ -8,6 +8,7 @@ type Props = { onClick: (emoji: BaseEmoji, event: React.MouseEvent) => void }
 export default function EmojiPicker(props: Props) {
   const theme = useAppSelector(selectMode)
 
+  
   return (
     <Picker
       theme={theme}
