@@ -13,9 +13,7 @@ import DatePicker from '../../components/DatePicker'
 import { Theme } from '../../components/Theme'
 import { BaseEmoji } from 'emoji-mart'
 import EmojiPicker from '../../components/EmojiPicker'
-import AddIconButton from './AddIconButton'
 import { TransparentButton } from '../../components/TransparentButton'
-import { add } from 'date-fns'
 import GoalIcon from './GoalIcon'
 
 type Props = { goal: Goal }
@@ -27,7 +25,6 @@ export function GoalManager(props: Props) {
   const [name, setName] = useState<string | null>(null)
   const [targetDate, setTargetDate] = useState<Date | null>(null)
   const [targetAmount, setTargetAmount] = useState<number | null>(null)
-  const [icon, setIcon] = useState<string | null>(null)
   const [emojiPickerIsOpen, setEmojiPickerIsOpen] = useState(false)
 
   useEffect(() => {
@@ -44,11 +41,6 @@ export function GoalManager(props: Props) {
   useEffect(() => {
     setName(goal.name)
   }, [goal.name])
-
-  // Update icon when selecting a different goal, or when the icon changes
-  useEffect(() => {
-    setIcon(props.goal.icon)
-  }, [props.goal.id, props.goal.icon])
   const updateNameOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const nextName = event.target.value
     setName(nextName)
@@ -90,8 +82,7 @@ export function GoalManager(props: Props) {
   const pickEmojiOnClick = (emoji: BaseEmoji, event: React.MouseEvent) => {
     event.stopPropagation()
 
-    // Set icon locally, then close the emoji picker
-    setIcon(emoji.native)
+    // Close the emoji picker
     setEmojiPickerIsOpen(false)
 
     // Update goal with new icon
